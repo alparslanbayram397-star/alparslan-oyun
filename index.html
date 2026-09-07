@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alparslan Oyun Sitesi</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0f172a; color: #ffffff; padding-bottom: 50px; }
+        
+        header {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            text-align: center;
+            padding: 30px 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border-bottom: 3px solid #6366f1;
+        }
+        header h1 { font-size: 2.8rem; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); letter-spacing: 2px; }
+
+        .controls-container {
+            max-width: 1200px; margin: 30px auto; padding: 0 20px;
+            display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
+        }
+        .search-box, .filter-box {
+            padding: 12px 20px; border-radius: 25px; border: 2px solid #334155;
+            background-color: #1e293b; color: #fff; font-size: 1rem; outline: none; transition: 0.3s;
+        }
+        .search-box { flex: 1; min-width: 250px; max-width: 500px; }
+        .search-box:focus, .filter-box:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+
+        .games-grid {
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px;
+        }
+        .game-card {
+            background-color: #1e293b; border-radius: 15px; overflow: hidden;
+            border: 1px solid #334155; transition: transform 0.3s, box-shadow 0.3s;
+            display: flex; flex-direction: column;
+        }
+        .game-card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px rgba(56, 189, 248, 0.2); border-color: #38bdf8; }
+        .game-img { width: 100%; height: 160px; object-fit: cover; background-color: #0f172a; }
+        .game-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+        .game-title { font-size: 1.2rem; margin-bottom: 8px; color: #f8fafc; }
+        .game-desc { font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px; flex-grow: 1; }
+        
+        .tags { display: flex; gap: 8px; font-size: 0.75rem; margin-bottom: 12px; }
+        .tag-fps { background-color: #059669; color: white; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
+        .tag-cat { background-color: #0284c7; color: white; padding: 3px 8px; border-radius: 5px; }
+
+        .play-btn {
+            background: linear-gradient(90deg, #0284c7, #2563eb); color: white; border: none;
+            padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%;
+        }
+        .play-btn:hover { background: linear-gradient(90deg, #0369a1, #1d4ed8); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ALPARSLAN OYUN SİTESİ</h1>
+    </header>
+
+    <div class="controls-container">
+        <input type="text" id="searchInput" class="search-box" placeholder="Oyun ara..." onkeyup="filterGames()">
+        <select id="categoryFilter" class="filter-box" onchange="filterGames()">
+            <option value="all">Tüm Kategoriler</option>
+            <option value="Yarış">Yarış</option>
+            <option value="Parkur">Parkur</option>
+            <option value="Aksiyon">Aksiyon</option>
+            <option value="Simülasyon">Simülasyon</option>
+            <option value="Spor">Spor</option>
+            <option value="Strateji">Strateji</option>
+        </select>
+    </div>
+
+    <div class="games-grid" id="gamesGrid"></div>
+
+    <script>
+        const games = [
+            { id: 1, title: "3D Araba Yarışı", category: "Yarış", fps: "120 FPS", desc: "Sonsuz otobanda araçlardan kaçın ve yüksek skor yapın. (Yön Tuşları)", img: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400", type: "racing" },
+            { id: 2, title: "3D Parkur Yapma", category: "Parkur", fps: "60 FPS", desc: "Platformlar üzerinden zıplayarak düşmeden en uç noktaya ulaşın. (Boşluk/Tıklama)", img: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=400", type: "parkour" },
+            { id: 3, title: "3D Silah Oyunu", category: "Aksiyon", fps: "144 FPS", desc: "Ekrana gelen hedeflere tıklayarak tam isabet vuruşlar yapın. (Mouse)", img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400", type: "shooter" },
+            { id: 4, title: "3D Uçak Simülatörü", category: "Simülasyon", fps: "60 FPS", desc: "Uçağı engellerin arasından geçirip halkanın içinden uçurun. (Yön Tuşları)", img: "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=400", type: "flight" },
+            { id: 5, title: "Siber Şehir Savaşları", category: "Aksiyon", fps: "120 FPS", desc: "Yukarıdan gelen siber robotları yok edin. (Sol/Sağ Tuşları & Ateş)", img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400", type: "cyber" },
+            { id: 6, title: "3D Zombi İstilası", category: "Aksiyon", fps: "90 FPS", desc: "Sana doğru koşan zombileri yok et, alanını koru. (Ateş Etmek için Tıkla)", img: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400", type: "zombie" },
+            { id: 7, title: "Uzay Yolu Drift", category: "Yarış", fps: "120 FPS", desc: "Uzay zemininde virajları dön ve pistte kal. (Sol/Sağ Tuşları)", img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400", type: "drift" },
+            { id: 8, title: "3D Futbol Efsaneleri", category: "Spor", fps: "60 FPS", desc: "Kalenin köşelerine tam falsolu penaltı atışları yap. (Sürükle & Bırak)", img: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400", type: "football" },
+            { id: 9, title: "Meydan Savaşı 3D", category: "Strateji", fps: "60 FPS", desc: "Askerlerini konumlandır ve gelen düşman dalgalarını püskürt. (Tıkla ve Konumlandır)", img: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400", type: "war" },
+            { id: 10, title: "Çöl Off-Road 3D", category: "Yarış", fps: "90 FPS", desc: "Sarp çöl kayalıklarında dev tekerlekli aracınla dengede kal. (Yön Tuşları)", img: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400", type: "offroad" }
+        ];
+
+        function renderGames(data) {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+            if(data.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Bulunamadı.</p>';
+                return;
+            }
+            data.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.innerHTML = `
+                    <img src="${game.img}" class="game-img">
+                    <div class="game-info">
+                        <div class="tags">
+                            <span class="tag-fps">${game.fps}</span>
+                            <span class="tag-cat">${game.category}</span>
+                        </div>
+                        <h3 class="game-title">${game.title}</h3>
+                        <p class="game-desc">${game.desc}</p>
+                        <button class="play-btn" onclick="launchGame('${game.type}', '${game.title}')">Şimdi Oyna</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterGames() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const categoryVal = document.getElementById('categoryFilter').value;
+            const filtered = games.filter(game => {
+                const matchesSearch = game.title.toLowerCase().includes(searchVal) || game.desc.toLowerCase().includes(searchVal);
+                const matchesCategory = categoryVal === 'all' || game.category === categoryVal;
+                return matchesSearch && matchesCategory;
+            });
+            renderGames(filtered);
+        }
+
+        // HER OYUN İÇİN FARKLILATIRILMIŞ MOTOR KODLARI
+        function launchGame(type, title) {
+            const win = window.open('', '_blank');
+            let gameScript = '';
+
+            if(type === 'racing') {
+                gameScript = `
+                    let px=180, score=0, obs=[{x:180,y:-100}];
+                    window.onkeydown=e=>{ if(e.key=='ArrowLeft'&&px>60)px-=120; if(e.key=='ArrowRight'&&px<300)px+=120; };
+                    function loop(){
+                        ctx.fillStyle='#333'; ctx.fillRect(0,0,400,600);
+                        ctx.fillStyle='#fff'; ctx.fillRect(195,0,10,600);
+                        ctx.fillStyle='#f00'; ctx.fillRect(px,500,40,70);
+                        ctx.fillStyle='#0f0';
+                        obs.forEach(o=>{ o.y+=6; ctx.fillRect(o.x,o.y,40,70);
+                            if(o.y>600){ o.y=-100; o.x=[60,180,300][Math.floor(Math.random()*3)]; score+=10; }
+                            if(Math.abs(o.x-px)<35 && Math.abs(o.y-500)<60){ alert('Kaza Yaptın! Skor: '+score); px=180; o.y=-100; score=0; }
+                        });
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Skor: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'parkour') {
+                gameScript = `
+                    let py=300, vy=0, score=0, plat=[{x:200,y:400,w:100}];
+                    window.onclick=window.onkeydown=()=>{ if(py>=300||vy==0){vy=-12;} };
+                    function loop(){
+                        ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,800,500);
+                        vy+=0.5; py+=vy; if(py>450){ py=300; vy=0; score=0; }
+                        ctx.fillStyle='#38bdf8'; ctx.fillRect(100,py,30,30);
+                        ctx.fillStyle='#059669';
+                        plat.forEach(p=>{ p.x-=4; ctx.fillRect(p.x,p.y,p.w,20);
+                            if(p.x<-100){ p.x=800; p.y=200+Math.random()*200; score+=1; }
+                            if(100>p.x && 100<p.x+p.w && py+30>=p.y && py+30<=p.y+10 && vy>0){ py=p.y-30; vy=0; }
+                        });
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Skor: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'shooter') {
+                gameScript = `
+                    let targets=[], score=0;
+                    function addT(){ targets.push({x:Math.random()*700+50,y:Math.random()*400+50,r:25}); }
+                    setInterval(addT, 1000);
+                    c.onclick=e=>{
+                        let rect=c.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
+                        targets.forEach((t,i)=>{
+                            if(Math.hypot(t.x-mx, t.y-my)<t.r){ targets.splice(i,1); score+=10; }
+                        });
+                    };
+                    function loop(){
+                        ctx.fillStyle='#1e293b'; ctx.fillRect(0,0,800,500);
+                        targets.forEach(t=>{ ctx.fillStyle='#ef4444'; ctx.beginPath(); ctx.arc(t.x,t.y,t.r,0,Math.PI*2); ctx.fill(); });
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Hedef Vurma Skoru: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'flight') {
+                gameScript = `
+                    let py=250, rings=[{x:800,y:250}], score=0;
+                    window.onkeydown=e=>{ if(e.key=='ArrowUp')py-=20; if(e.key=='ArrowDown')py+=20; };
+                    function loop(){
+                        ctx.fillStyle='#0284c7'; ctx.fillRect(0,0,800,500);
+                        ctx.fillStyle='#f59e0b'; ctx.fillRect(100,py,40,20); // Uçak
+                        rings.forEach(r=>{ r.x-=5; ctx.strokeStyle='#fff'; ctx.lineWidth=8; ctx.beginPath(); ctx.arc(r.x,r.y,40,0,Math.PI*2); ctx.stroke();
+                            if(r.x<0){ r.x=800; r.y=Math.random()*400+50; }
+                            if(Math.abs(r.x-100)<10 && Math.abs(r.y-py)<40){ score+=5; }
+                        });
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Geçilen Halka Skoru: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'cyber') {
+                gameScript = `
+                    let px=380, bullets=[], enemies=[], score=0;
+                    window.onkeydown=e=>{ if(e.key=='ArrowLeft')px-=20; if(e.key=='ArrowRight')px+=20; if(e.key==' ')bullets.push({x:px+20,y:450}); };
+                    setInterval(()=>enemies.push({x:Math.random()*760,y:0}),1200);
+                    function loop(){
+                        ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,800,500);
+                        ctx.fillStyle='#6366f1'; ctx.fillRect(px,460,40,30);
+                        bullets.forEach((b,bi)=>{ b.y-=8; ctx.fillStyle='#38bdf8'; ctx.fillRect(b.x,b.y,5,10); });
+                        enemies.forEach((en,ei)=>{ en.y+=2; ctx.fillStyle='#a855f7'; ctx.fillRect(en.x,en.y,30,30);
+                            bullets.forEach((b,bi)=>{ if(Math.abs(b.x-en.x)<30 && Math.abs(b.y-en.y)<30){ enemies.splice(ei,1); bullets.splice(bi,1); score+=20; } });
+                        });
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Siber Puan: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'zombie') {
+                gameScript = `
+                    let zom=[], score=0;
+                    setInterval(()=>zom.push({x:Math.random()*800,y:0}),1000);
+                    c.onclick=e=>{
+                        let rect=c.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
+                        zom.forEach((z,i)=>{ if(Math.hypot(z.x-mx, z.y-my)<25){ zom.splice(i,1); score+=15; } });
+                    };
+                    function loop(){
+                        ctx.fillStyle='#14532d'; ctx.fillRect(0,0,800,500);
+                        zom.forEach(z=>{ z.y+=1.5; ctx.fillStyle='#84cc16'; ctx.beginPath(); ctx.arc(z.x,z.y,20,0,Math.PI*2); ctx.fill(); });
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Etkisiz Zombi: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'drift') {
+                gameScript = `
+                    let carX=400, angle=0, score=0;
+                    window.onkeydown=e=>{ if(e.key=='ArrowLeft')angle-=0.1; if(e.key=='ArrowRight')angle+=0.1; };
+                    function loop(){
+                        ctx.fillStyle='#312e81'; ctx.fillRect(0,0,800,500);
+                        carX += Math.sin(angle)*5; score++;
+                        ctx.fillStyle='#ec4899'; ctx.fillRect(carX,250,30,50);
+                        if(carX<100 || carX>700){ alert('Pistten Çıktın!'); carX=400; angle=0; score=0; }
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Drift Süresi Skoru: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'football') {
+                gameScript = `
+                    let bx=400, by=400, bvx=0, bvy=0, goals=0;
+                    c.onclick=e=>{ let rect=c.getBoundingClientRect(); bvx=(e.clientX-rect.left-400)/15; bvy=(e.clientY-rect.top-400)/15; };
+                    function loop(){
+                        ctx.fillStyle='#15803d'; ctx.fillRect(0,0,800,500);
+                        ctx.strokeStyle='#fff'; ctx.lineWidth=5; ctx.strokeRect(250,50,300,120); // Kale
+                        bx+=bvx; by+=bvy;
+                        ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(bx,by,15,0,Math.PI*2); ctx.fill();
+                        if(by<170 && bx>250 && bx<550){ goals++; bx=400; by=400; bvx=0; bvy=0; }
+                        if(by<0||by>500||bx<0||bx>800){ bx=400; by=400; bvx=0; bvy=0; }
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Gol Sayısı: '+goals,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'war') {
+                gameScript = `
+                    let troops=[], enemies=[], score=0;
+                    c.onclick=e=>{ let rect=c.getBoundingClientRect(); troops.push({x:e.clientX-rect.left,y:450}); };
+                    setInterval(()=>enemies.push({x:Math.random()*750,y:0}),1500);
+                    function loop(){
+                        ctx.fillStyle='#78350f'; ctx.fillRect(0,0,800,500);
+                        troops.forEach((t,ti)=>{ t.y-=2; ctx.fillStyle='#60a5fa'; ctx.fillRect(t.x,t.y,20,20); });
+                        enemies.forEach((en,ei)=>{ en.y+=1; ctx.fillStyle='#f87171'; ctx.fillRect(en.x,en.y,20,20);
+                            troops.forEach((t,ti)=>{ if(Math.hypot(t.x-en.x, t.y-en.y)<20){ enemies.splice(ei,1); troops.splice(ti,1); score+=10; } });
+                        });
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Yok Edilen Birlik: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            } else if(type === 'offroad') {
+                gameScript = `
+                    let ty=350, rot=0, score=0;
+                    window.onkeydown=e=>{ if(e.key=='ArrowUp')rot+=0.1; if(e.key=='ArrowDown')rot-=0.1; };
+                    function loop(){
+                        ctx.fillStyle='#b45309'; ctx.fillRect(0,0,800,500);
+                        ctx.fillStyle='#78350f'; ctx.beginPath(); ctx.moveTo(0,400); ctx.lineTo(400,300); ctx.lineTo(800,450); ctx.lineTo(800,500); ctx.lineTo(0,500); ctx.fill();
+                        score++;
+                        ctx.save(); ctx.translate(300,340); ctx.rotate(rot); ctx.fillStyle='#18181b'; ctx.fillRect(-30,-15,60,30); ctx.restore();
+                        ctx.fillStyle='#fff'; ctx.font='20px sans-serif'; ctx.fillText('Mesafe Skoru: '+score,20,30);
+                        requestAnimationFrame(loop);
+                    } loop();`;
+            }
+
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title} - Alparslan Oyun</title>
+                    <style>
+                        body { margin:0; background:#020617; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; color:white; font-family:sans-serif; }
+                        canvas { border:3px solid #38bdf8; border-radius:12px; background:#000; box-shadow: 0 0 20px rgba(56,189,248,0.4); }
+                        h2 { margin-bottom:10px; color:#38bdf8; }
+                    </style>
+                </head>
+                <body>
+                    <h2>${title}</h2>
+                    <canvas id="c" width="800" height="500"></canvas>
+                    <script>
+                        const c = document.getElementById('c');
+                        const ctx = c.getContext('2d');
+                        ${gameScript}
+                    <\/script>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        renderGames(games);
+    </script>
+</body>
+</html>
